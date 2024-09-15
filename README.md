@@ -1,2 +1,3 @@
-# zaohua_lang
-This language is a functional programming language. 
+# 造化
+此语言是一种编译型轻量级运行时语言,一生二,二生三,三生万物,造化无穷
+
