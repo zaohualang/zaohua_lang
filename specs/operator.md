@@ -221,47 +221,6 @@ chan <- 42  # 将 42 传入通道
 
 ---
 
-## 7. 管道操作符 `|`
-
-**作用**: 将前一个函数的返回值作为参数传递给后一个函数，类似于 UNIX 管道操作，用于简化函数调用链。
-
-**用例**:
-```language
-func square(int32->int32) {
-    return int32 * int32
-}
-
-func increment(int32->int32) {
-    return int32 + 1
-}
-
-result := 5 | square | increment  # 先平方再加 1，结果为 26
-```
-
-**注意**: 管道操作符从左向右依次传递函数结果，简化函数嵌套调用。
-
----
-
-## 8. 逆管道操作符 `~`
-
-**作用**: 逆向执行管道操作，将后一个函数的返回值传入前一个函数，用于减少嵌套和提升可读性。
-
-**用例**:
-```language
-func double(int32->int32) {
-    return int32 * 2
-}
-
-func add_five(int32->int32) {
-    return int32 + 5
-}
-
-result := double ~ add_five  # 先执行 add_five，再执行 double，结果为 20
-```
-
-**注意**: `~` 操作符可以减少嵌套操作的复杂性，逆向传递结果以优化代码结构。
-
----
 
 ## 操作符总结
 
@@ -273,8 +232,6 @@ result := double ~ add_five  # 先执行 add_five，再执行 double，结果为
 | `->`   | 函数返回值符号                                                | `func multiply(int32-int32->int32)`                          |
 | `&`    | 引用传递                                                      | `modify(&a, 10)`                                             |
 | `<-`   | 传入通道符号                                                  | `chan <- 42`                                                 |
-| `|`    | 管道操作符，顺序传递结果                                      | `result := 5 | square | increment`                          |
-| `~`    | 逆管道操作符，逆向传递结果                                    | `result := double ~ add_five`                                |
 
 这份操作符特性说明为本语言提供了灵活的语法规则，确保操作符能够提高代码的可读性和开发效率。
 
