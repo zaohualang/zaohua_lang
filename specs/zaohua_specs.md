@@ -219,6 +219,36 @@ for i in range(5) {
 ```
 
 
+
+
+### 5.2 异常处理
+
+- **异常处理结构**：`try: ... catch Exception: ... catch: ...`。`catch` 块用于处理异常或无条件
+
+执行代码。
+
+  ```language
+  try {
+      # 可能抛出异常的代码
+  } catch Exception:
+      # 异常处理代码
+  catch:
+      # 无论如何都会执行的代码
+  ```
+
+### 5.3 注解
+
+- **函数注解**：可以通过 `@` 增加注解，用于扩展函数的行为或添加元数据。
+
+  ```language
+  @deprecated
+  func oldFunction() {
+      # 函数体
+  }
+  ```
+
+---
+
 ## 6.表达式特性
 
 ###  6.1. 算术表达式
@@ -318,35 +348,124 @@ for i in range(5) {
   result = 5 >> 1  # 结果为 2（0101 >> 1 = 0010）
   ```
 
+## 7.`chan` 特性文档
 
-### 5.2 异常处理
+### 7.1. 概述
 
-- **异常处理结构**：`try: ... catch Exception: ... catch: ...`。`catch` 块用于处理异常或无条件
+在本语言中，`chan` 关键字用于声明和操作通道。通道用于在并发操作中进行数据传递，支持发送和接收操作。通道可以用于进程和线程之间的数据通信，确保数据的一致性和线程安全。
 
-执行代码。
+### 7.2. 声明通道
 
-  ```language
-  try {
-      # 可能抛出异常的代码
-  } catch Exception:
-      # 异常处理代码
-  catch:
-      # 无论如何都会执行的代码
-  ```
+#### 7.2.1 声明通道
 
-### 5.3 注解
+使用 `chan` 关键字声明一个通道。通道类型由通道的元素类型指定。
 
-- **函数注解**：可以通过 `@` 增加注解，用于扩展函数的行为或添加元数据。
+```language
+chan int myChannel  # 声明一个元素类型为 int 的通道
+```
 
-  ```language
-  @deprecated
-  func oldFunction() {
-      # 函数体
-  }
-  ```
+#### 7.2.2 缓冲区通道
 
----
+可以声明带有缓冲区的通道，通过指定缓冲区的大小来定义。
 
+```language
+chan int bufferedChannel[10]  # 声明一个缓冲区大小为 10 的 int 类型通道
+```
+
+### 7.3. 发送与接收
+
+#### 7.3.1 发送数据
+
+使用 `<-` 操作符向通道发送数据。
+
+```language
+myChannel <- 42  # 向通道发送整数 42
+```
+
+#### 7.3.2 接收数据
+
+使用 `<-` 操作符从通道接收数据。接收操作是阻塞的，直到有数据可用。
+
+```language
+value = <-myChannel  # 从通道接收数据并赋值给变量 value
+```
+
+### 7.4. 通道操作
+
+#### 7.4.1 关闭通道
+
+使用 `close` 函数关闭通道。关闭通道后，无法再发送数据，但可以接收剩余的数据。
+
+```language
+close(myChannel)  # 关闭通道
+```
+
+#### 7.4.2 检查通道是否关闭
+
+通过接收操作的第二个返回值来检查通道是否已关闭。第二个返回值为 `false` 表示通道已关闭且没有更多数据可读。
+
+```language
+value, ok = <-myChannel  # value 为接收到的数据，ok 为通道状态
+if !ok {
+    print("Channel closed")
+}
+```
+
+### 7.5. 示例
+
+#### 7.5.1 基本示例
+
+```language
+func producer(chan int) {
+    for i in range(5) {
+        myChannel <- i  # 向通道发送数据
+    }
+    close(myChannel)  # 发送完数据后关闭通道
+}
+
+func consumer(chan int) {
+    for {
+        value, ok = <-myChannel  # 从通道接收数据
+        if !ok {
+            break  # 通道关闭，退出循环
+        }
+        print(value)
+    }
+}
+
+myChannel = chan int[5]  # 创建一个缓冲区大小为 5 的通道
+go producer(myChannel)
+go consumer(myChannel)
+```
+
+#### 7.5.2 带缓冲区的通道
+
+```language
+func main() {
+    bufferedChannel = chan int[3]  # 创建一个缓冲区大小为 3 的通道
+
+    // 发送数据
+    bufferedChannel <- 1
+    bufferedChannel <- 2
+    bufferedChannel <- 3
+
+    // 关闭通道
+    close(bufferedChannel)
+
+    // 接收数据
+    for value, ok = <-bufferedChannel; ok; value, ok = <-bufferedChannel {
+        print(value)
+    }
+}
+```
+
+## 6. 注意事项
+
+- 通道的发送和接收操作是阻塞的，直到通道的另一端准备好。
+- 对于缓冲区通道，发送操作只有在缓冲区未满时才能成功，接收操作只有在缓冲区非空时才能成功。
+- 关闭通道后，只能接收数据，无法再发送数据。
+
+```
 ## 6. 总结
 
 - **类型系统**：值传递，支持丰富的基本类型和自定义结构体类型。
