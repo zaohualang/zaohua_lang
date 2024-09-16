@@ -249,7 +249,7 @@ for i in range(5) {
 
 ---
 
-## 6. [表达式与运算符]()
+## 6. [表达式与运算符](https://github.com/zaohualang/zaohua_lang/edit/main/specs/operator.md)
 
 
 ## 7.`chan` 特性文档
