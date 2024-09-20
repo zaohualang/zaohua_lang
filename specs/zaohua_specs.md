@@ -11,11 +11,10 @@
 
 ### 2.1 基本类型
 
-- **数值类型**：包括 `int1`, `int2`, `int4`, `int8`, `int16`, `int32`, `int64`, `float8`, `float16`, `float32`, `float64`。其中 `int1` 用于布尔值。没有 `bool` 类型。
+- **数值类型**：包括  `int8`, `int16`, `int32`, `int64`, `float8`, `float16`, `float32`, `float64`。
 - **其他基本类型**：字符串类型和字节串类型。所有基本类型都是值类型，且不可变。
 
   ```language
-  int1  # 布尔型
   float32  # 浮点型
   string  # 字符串类型
   bytes # 字节串类型
