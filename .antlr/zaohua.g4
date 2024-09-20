@@ -78,7 +78,7 @@ CONTINUE : 'continue' ;
 GOTO : 'goto' ;
 
 // 标识符
-IDENTIFIER : [a-zA-Z_] [a-zA-Z_0-9]* ;
+IDENTIFIER : [\u4E00-\u9FFFa-zA-Z_] [\u4E00-\u9FFFa-zA-Z_0-9]* ;
 
 // 单行注释
 LINE_COMMENT : '#' ~[\r\n]* -> skip ;
@@ -104,6 +104,20 @@ RBRACE  : '}' ;
 
 //数组
 array        : fixed_array | dynamic_array ;
+
+TYPE 
+    : 'int8'
+    | 'int16'
+    | 'int32'
+    | 'int64'
+    | 'float8'
+    | 'float16'
+    | 'float32'
+    | 'float64'
+    | 'string'
+    | 'bytes'
+    | IDENTIFIER;
+
 
 fixed_array  : TYPE LBRACK NUMBER RBRACK ;  // 类型[大小]，固定大小数组
 
@@ -184,7 +198,7 @@ int
     | 'int32'
     | 'int64'
     ;
-type
+primitiveType
     : 'int8'
     | 'int16'
     | 'int32'
@@ -196,6 +210,7 @@ type
     | 'string'
     | 'bytes'
     ;
+
 // 语法规则
 expression
     : term (BIT_AND term)*   // 处理位与
