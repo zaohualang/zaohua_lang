@@ -21,11 +21,16 @@
   func _hidden_method() {
       # 私有方法
   }
+
+  map custom_map(string, custom_struct){
+    #键值对
+  }
+
   ```
 
 ## 2. 注释规范
 
-- **文档注释**：所有结构体和函数必须有文档注释。注释应详细解释每个参数及返回值的含义。没有文档注释的结构体或函数将导致编译错误。
+- **文档注释**：所有结构体和函数必须有文档注释。注释应详细解释每个参数及返回值的含义。可以为空字符串,没有文档注释的结构体或函数将导致编译错误。
 
   ```language
   # 计算圆的面积
@@ -33,7 +38,7 @@
   #   float32: 圆的半径
   # 返回值:
   #   float32: 计算出的面积
-  func calculate_area(float32) float32 {
+  func calculate_area(float32, float32) float32 {
       return 3.14 * float32 * float32
   }
   ```

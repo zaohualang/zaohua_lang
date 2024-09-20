@@ -11,11 +11,11 @@
 
 ### 2.1 基本类型
 
-- **数值类型**：包括 `int1`, `int2`, `int4`, `int8`, `int16`, `int32`, `int64`, `float8`, `float16`, `float32`, `float64`。其中 `int1` 用于布尔值。没有 `bool` 类型。
-- **其他基本类型**：字符串类型和字节串类型。所有基本类型都是值类型，且不可变。
+- **数值类型**：包括 `int8`, `int16`, `int32`, `int64`, `float8`, `float16`, `float32`, `float64`。
+- **其他基本类型**：字符串类型和字节串类型以及布尔型。所有基本类型都是值类型，且不可变。
 
   ```language
-  int1  # 布尔型
+  true  # 布尔型
   float32  # 浮点型
   string  # 字符串类型
   bytes # 字节串类型
@@ -44,7 +44,7 @@
 
 ### 2.3 赋值与引用传递
 
-- **赋值行为**：所有赋值行为都是复制（值传递），包括函数实参，即使是嵌套的可变类型，如嵌套的 `Map`。赋值是全量映射，不传递引用。需要传递引用时，使用引用传递符 `&`。
+- **赋值行为**：所有赋值行为都是复制（值传递），包括函数实参，即使是嵌套的可变类型，如嵌套的 `map`。赋值是全量映射，不传递引用。需要传递引用时，使用引用传递符 `&`。
 
   ```language
   func set(&int2, int4) {
@@ -55,9 +55,9 @@
   snap = &num_array[3:9]  # 数组切片引用传递
   ```
 
-### 2.4 函数
+### 2.4 扩展类型--函数
 
-- **函数定义与调用**：函数参数仅有类型，没有名称。函数形参类型应按字母序排序,重复形参类型必须显式添加别名,对于重复类型形参,建议使用数组，形参数量不能超过五个。函数作为第一类值，可以传递或作为返回值。别名使用方式分别为 `arr:MetaStruct[]`, `maps:Map<Meta,Meta>`, `f:int16-string->string`，一旦使用别名，数组名、Map名和函数签名在本作用域中失去含义，只保留签名作用，别名不能作为签名。
+- **函数定义与调用**：函数参数仅有类型，没有名称。函数形参类型应按字母序排序,重复形参类型必须显式添加别名,对于重复类型形参,建议使用数组，形参数量建议不超过五个。函数作为第一类值，可以传递或作为返回值。别名使用方式分别为 `arr:MetaStruct[]`, `maps:Map<Meta,Meta>`, `f:int16-string->string`，一旦使用别名，数组名、map名和函数签名在本作用域中丢失值，只作为签名保留，别名不能作为签名。
 
   ```language
   func add(int_arr:int[2])int {
@@ -79,7 +79,7 @@
 
   ```language
   # 使用签名方式定义超载函数
-  func apply(func:int->int, int)int {
+  func apply(func:<int->int>, int)int {
       return func(int)
   }
 
@@ -91,7 +91,7 @@
   apply(increment, 5)  # 输出：6
   ```
 
-- **显式类型转换**：对于结构体其他情况下需要使用 `(parent)Child` 进行显式类型转换。如果将子类型传入父类型，参数的所有行为以子类型拥有的优先。如果子类型没有此行为，则调用父类型，如果父类型也没有该行为，则编译器报错。
+- **隐式类型转换**：对于基本类型,可以自动进行隐式类型转换,转换原则为安全第一原则,低位转高位是安全的,高位转低位是不安全的,对于结构体子类隐式转化父类是安全的,父类隐式转化子类是不安全的,对于不安全的隐式转换编译器会警告。如果将子类型传入父类型，参数的所有行为以子类型拥有的优先。如果子类型没有此行为，则调用父类型，如果父类型也没有该行为，则编译器报错;如果将父类型传入子类型,行为以父类型拥有的优先,如果父类型没有对应行为,则调用子类型的对应行为,如果都没有,则编译器报错.
 
   ```language
   struct Parent {
@@ -106,26 +106,31 @@
       return "Processed Parent"
   }
 
-  # 显式类型转换
-  process((Parent) Child { 42, "example" })
+  # 隐式
+  process(Child { 42, "example" })
   ```
 
 ### 2.5 结构体定义与调用
 
-- **结构体定义**：结构体字段仅使用类型定义，字段按字母序排列，字段调用时使用 `struct.字段类型` 的形式。字段类型重复必须使用别名，若重复建议数组形式表示，同一签名的结构体不能重名
+- **结构体定义**：结构体字段仅使用类型定义，字段按字母序排列，字段调用时使用 `struct.字段类型` 的形式。字段类型重复会自动打包成数组, 此情况下可以使用别名，定义别名后类型丢失值,只作为签名使用,若重复建议数组形式表示，同一签名的结构体不能重名
 
   ```language
   struct Point {
-      float, int
+      float, float
   }
 
   struct Vector {
       float[], int
   }
 
+  struct Persion{
+    int, int, int[4]
+  }
+
   # 结构体字段调用
-  Point.float  # 访问结构体字段类型
+  Point.float[1]  # 表示访问大小为2的float数组的第二个元素
   Vector.int    # 访问结构体字段类型
+  Persion.int[5] #表示访问第三个字段的最后一个值
   ```
 
 - **自动继承机制**：包含另一个结构体所有字段的结构体将自动继承该结构体。字段调用仍使用 `struct.字段类型` 的形式。
@@ -138,7 +143,7 @@
   struct RichVector {
       float[], int, string
   }
-
+  # 由于 RichVector具有ColorPoint所有字段,所以自动继承ColorPoint, 可以隐式认为是ColorPoint类型,可以直接传入ColorPoint类型
   # 结构体字段调用
   ColorPoint.string  # 访问结构体字段类型
   RichVector.float[] # 访问结构体字段类型
@@ -146,17 +151,17 @@
 
 ### 2.6 数组与动态数组
 
-- **数组定义**：定义数组时，中括号内有数字表示固定数组，没有数字则为动态数组。同类型（或有继承关系的类型）的数组，长度较长的数组继承长度较短的数组，可以进行里氏替换。
+- **数组定义**：定义数组时，中括号内有数字表示固定数组，没有数字则为动态数组。同类型（或有继承关系的类型）的数组，不同长度可以隐式转换,不安全的转换编译器会警告。
 
   ```language
-  intArray[10]  # 固定长度数组
-  dynamicArray[]  # 动态数组
+  int_array[10]  # 固定长度数组
+  dynamic_array[]  # 动态数组
   ```
 
-- **哈希表定义**：元哈希表为 `Map<Meta, Meta>`，其中 `Map` 为关键字，用于声明哈希表。哈希表之间有继承关系，遵循里氏替换原则。当键和值同时具有继承关系且继承关系同向时，继承关系才成立。
+- **哈希表定义**：元哈希表为 `map MetaMap(Meta, Meta)`，其中 `map` 为关键字，用于声明哈希表。哈希表之间有继承关系，可以进行隐式替换,不安全的替换会警告
 
   ```language
-  Map<int, string> exampleMap
+  map example_map(int, string)
   ```
 
 ---
@@ -186,6 +191,7 @@
 
 - **break**: 终止当前循环。
 - **chan**: 声明通道类型，用于并发操作。
+- **co**: 创建协程, 用于并发操作
 - **continue**: 跳过当前循环的剩余部分，继续下一次迭代。
 - **else**: 与 `if` 语句配合使用，表示条件不满足时的代码块。
 - **for**: 用于循环迭代。
@@ -267,7 +273,7 @@ for i in range(5) {
 使用 `chan` 关键字声明一个通道。通道类型由通道的元素类型指定。
 
 ```language
-chan int myChannel  # 声明一个元素类型为 int 的通道
+chan int my_channel  # 声明一个元素类型为 int 的通道
 ```
 
 #### 7.2.2 缓冲区通道
@@ -285,7 +291,7 @@ chan int bufferedChannel[10]  # 声明一个缓冲区大小为 10 的 int 类型
 使用 `<-` 操作符向通道发送数据。
 
 ```language
-myChannel <- 42  # 向通道发送整数 42
+my_channel <- 42  # 向通道发送整数 42
 ```
 
 #### 7.3.2 接收数据
@@ -293,7 +299,7 @@ myChannel <- 42  # 向通道发送整数 42
 使用 `<-` 操作符从通道接收数据。接收操作是阻塞的，直到有数据可用。
 
 ```language
-value = <-myChannel  # 从通道接收数据并赋值给变量 value
+value = <-my_channel  # 从通道接收数据并赋值给变量 value
 ```
 
 ### 7.4. 通道操作
@@ -303,16 +309,15 @@ value = <-myChannel  # 从通道接收数据并赋值给变量 value
 使用 `close` 函数关闭通道。关闭通道后，无法再发送数据，但可以接收剩余的数据。
 
 ```language
-close(myChannel)  # 关闭通道
+close(my_channel)  # 关闭通道
 ```
 
 #### 7.4.2 检查通道是否关闭
-
-通过接收操作的第二个返回值来检查通道是否已关闭。第二个返回值为 `false` 表示通道已关闭且没有更多数据可读。
+通过is_closed(my_channel)判断通道是否关闭
 
 ```language
-value, ok = <-myChannel  # value 为接收到的数据，ok 为通道状态
-if !ok {
+value = <-my_channel  # value 为接收到的数据，ok 为通道状态
+if is_closed(my_channel) {
     print("Channel closed")
 }
 ```
@@ -324,24 +329,24 @@ if !ok {
 ```language
 func producer(chan int) {
     for i in range(5) {
-        myChannel <- i  # 向通道发送数据
+        my_channel <- i  # 向通道发送数据
     }
-    close(myChannel)  # 发送完数据后关闭通道
+    close(my_channel)  # 发送完数据后关闭通道
 }
 
 func consumer(chan int) {
     for {
-        value, ok = <-myChannel  # 从通道接收数据
-        if !ok {
+        value, ok = <-my_channel  # 从通道接收数据
+        if is_closed(my_channel) {
             break  # 通道关闭，退出循环
         }
         print(value)
     }
 }
 
-myChannel = chan int[5]  # 创建一个缓冲区大小为 5 的通道
-go producer(myChannel)
-go consumer(myChannel)
+my_channel = chan int[5]  # 创建一个缓冲区大小为 5 的通道
+co producer(my_channel)
+co consumer(my_channel)
 ```
 
 #### 7.5.2 带缓冲区的通道
@@ -359,7 +364,7 @@ func main() {
     close(bufferedChannel)
 
     // 接收数据
-    for value, ok = <-bufferedChannel; ok; value, ok = <-bufferedChannel {
+    for value = <-bufferedChannel {
         print(value)
     }
 }

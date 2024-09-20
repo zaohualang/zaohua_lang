@@ -154,7 +154,7 @@ b := "Hello, world!"  # 声明变量 b，类型为字符串
 
 **用例**:
 ```language
-f: int32-float32->string  # 将特定签名函数取别名 f
+f: <int32,float32->string>  # 将特定签名函数取别名 f
 f(5, 3.14)  # 调用别名函数
 ```
 
@@ -162,17 +162,18 @@ f(5, 3.14)  # 调用别名函数
 
 ---
 
-## 3. 签名连接符 `-`
+## 3. 签名
+**签名格式** \<sign>
 
-**作用**: 连接函数参数类型，用于定义函数签名。参数类型通过连字符 `-` 连接在一起。
+**作用**: 连接函数参数类型，用于定义函数签名。参数类型通过连字符 `,` 连接在一起。
 
 **用例**:
 ```language
-func add(a:int32[], string) int32 函数签名为 int32[]-string->int32 # 
+func add(a:int32[], string) int32 函数签名为 <int32[],string->int32> # 
 result := add(5, 10, "yes")  # 调用函数，返回结果 15
 ```
 
-**注意**: 签名中的参数类型不能重复，重复类型会以数组形式传入。
+
 
 ---
 
@@ -182,7 +183,7 @@ result := add(5, 10, "yes")  # 调用函数，返回结果 15
 
 **用例**:
 ```language
-func add(a:int32[], string) int32 函数签名为 int32[]-string->int32 # 
+func add(a:int32[], string) int32 函数签名为 <int32[],string->int32> # 
 result := add(5, 10, "yes")  # 调用函数，返回结果 15
 ```
 
