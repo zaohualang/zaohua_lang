@@ -32,6 +32,9 @@ SEMI: ';';
 COMMA: ',';
 DOLLAR: '$';  
 DOT: '.';  
+LEFT_ARROW: '<-';
+RIGHT_ARROW: '->';
+AT: '@';
 
 
 
@@ -216,7 +219,7 @@ elseStatement
 
 // for 循环语句
 forStatement
-    : FOR ID IN expression COLON block  // 简化的 for-in 循环语法
+    : FOR ID* IN expression COLON block  // 简化的 for-in 循环语法
     ;
 
 keyValuePair
@@ -232,14 +235,18 @@ arrayType
     : fixedArray
     | dynamicArray
     ;
+literalArray
+    : LBRACK paramList
+
+signType: LT paramList? RIGHT_ARROW paramList? GT;
 
 // 函数声明，支持函数签名
 funcDeclaration
-    : FUNC ID LPAREN paramList? RPAREN (COLON typeSpecifier)? COLON block  // 函数定义，带参数列表和可选的返回类型
+    : FUNC ID LPAREN paramList? RPAREN paramList? COLON block  // 函数定义，带参数列表和可选的返回类型
     ;
 
 mapDeclaration
-    : MAP ID (LT type COMMA type GT)? LBRACE keyValuePair* RBRACE  // 哈希表声明语法
+    : MAP (LT type COMMA type GT)? LBRACE keyValuePair* RBRACE  // 哈希表声明语法
     ;
 
 // 别名声明，使用冒号定义别名
@@ -249,7 +256,7 @@ aliasDeclaration
 
 // return 语句
 returnStatement
-    : RETURN expression? generalSeparator  // return 语句，支持带或不带返回值
+    : RETURN expression* generalSeparator  // return 语句，支持带或不带返回值和多返回值(隐式转化为匿名结构体)
     ;
 
 // 赋值语句
@@ -278,14 +285,16 @@ paramList
     : param (COMMA param)*  // 支持多个参数，中间用逗号分隔
     ;
 param
-    : ID COLON typeSpecifier  // 参数由名称和类型组成
+    : ID COLON typeSpecifier  
+    | typeSpecifier
     ;
 
 // 类型说明符
 typeSpecifier
     : numberType
-    | 'bool'
-    | 'string'
+    | boolType
+    | stringType
+    | signType
     | ID  
     ;
 
@@ -297,20 +306,22 @@ expression
     | multiplicativeExpression
     | funcCall
     | literal
+    | primary
     | ID
     ;
 
 // 函数调用表达式，支持别名调用
 funcCall
     : ID LPAREN argumentList? RPAREN  
-    | ID
+    | ID DOT funcCall
+    | implStruct DOT funcCall
     ;
 
 // 参数列表
 argumentList
     : expression (COMMA expression)*  // 参数可以是多个表达式
     ;
-
+    
 // 等式表达式
 equalityExpression
     : relationalExpression (EQ relationalExpression | NEQ relationalExpression)*  // 支持 == 和 != 操作
