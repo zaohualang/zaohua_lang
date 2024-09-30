@@ -12,6 +12,7 @@ TRUE: 'true';
 FALSE: 'false';
 STRUCT: 'struct';
 MAP: 'map';
+SIGN: 'sign';
 
 // 操作符
 PLUS: '+';
@@ -142,8 +143,6 @@ basicType
 type
     : basicType
     | ID
-    | arrayType
-    
     ;
 // 语句分隔符规则
 statementSeparator
@@ -156,15 +155,21 @@ generalSeparator
     ;
 
 program
-    : module EOF  // 程序由模块直到文件结束
+    : main EOF  // 程序由模块直到文件结束
+    | module EOF
     ;
-
-module
+module:
+    (structDefinition         // 结构体定义
+    | signDeclaration          
+    | funcDeclaration        // 函数定义
+    )* 
+    ;
+main
     : (structDefinition         // 结构体定义
-    | mapDeclaration         // map定义和初始化
-    | variableAssignment        // 变量赋值
-    | functionDefinition        // 函数定义
-    )* mainFunctionDefinition?  // 主函数定义只能有 0 或 1 个
+    | signDeclaration          
+    | funcDeclaration        // 函数定义
+    | statement
+    )*  
     ;
 structDefinition
     : STRUCT ID LBRACE (structField)+ RBRACE
@@ -172,7 +177,6 @@ structDefinition
 
 implStruct
     : LBRACE expression (COMMA expression)* RBRACE
-    | expression
     ;
 
 structField
@@ -237,15 +241,16 @@ arrayType
     ;
 literalArray
     : LBRACK paramList
+    ;
+//签名声明
+signDeclaration: SIGN ID LT paramList? RIGHT_ARROW paramList? GT;
 
-signType: LT paramList? RIGHT_ARROW paramList? GT;
-
-// 函数声明，支持函数签名
+// 函数声明
 funcDeclaration
     : FUNC ID LPAREN paramList? RPAREN paramList? COLON block  // 函数定义，带参数列表和可选的返回类型
     ;
 
-mapDeclaration
+mapInitExpression
     : MAP (LT type COMMA type GT)? LBRACE keyValuePair* RBRACE  // 哈希表声明语法
     ;
 
@@ -294,7 +299,6 @@ typeSpecifier
     : numberType
     | boolType
     | stringType
-    | signType
     | ID  
     ;
 
@@ -307,6 +311,7 @@ expression
     | funcCall
     | literal
     | primary
+    | mapInitExpression
     | ID
     ;
 
@@ -316,7 +321,15 @@ funcCall
     | ID DOT funcCall
     | implStruct DOT funcCall
     ;
-
+// 字段调用规则
+fieldCall
+    : ID (DOT type)*  // ID 后可以跟零个或多个 
+    ;
+call
+    : funcCall
+    | fieldCall
+    | (funcCall | fieldCall) (DOT (funcCall | fieldCall))+
+    ;
 // 参数列表
 argumentList
     : expression (COMMA expression)*  // 参数可以是多个表达式
