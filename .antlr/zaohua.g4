@@ -323,7 +323,7 @@ funcCall
     ;
 // 字段调用规则
 fieldCall
-    : ID (DOT type)*  // ID 后可以跟零个或多个 
+    : ID (DOT type | LBRACK expression RBRACK)*   // ID 后可以跟零个或多个 
     ;
 call
     : funcCall

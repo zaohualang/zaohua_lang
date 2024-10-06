@@ -48,33 +48,36 @@
 
 ### 2.3 赋值与引用传递
 
-- **赋值行为**：所有赋值行为都是复制（值传递），包括函数实参，即使是嵌套的可变类型，如嵌套的 `map`。赋值是全量映射，不传递引用。需要传递引用时，使用引用传递符 `&`。
+- **赋值行为**：所有赋值行为都是复制（值传递），包括函数实参，即使是嵌套的可变类型，如嵌套的 `map`。赋值是全量映射，不传递引用。需要传递引用时，使用引用传递符 `$`。
 
   ```language
-  func set(&int2, int4) {
-      int2 = (int2)int4
+  func set(a: $int8, b: int32) {
+      a = int8(b)
       return
   }
+  x: int8 := 4;
+  y: int32 := 46
+  set($x, y) #调用函数set
 
-  snap = &num_array[3:9]  # 数组切片引用传递
+  snap := $num_array[3:9]  # 数组切片引用传递
   ```
 
 ### 2.4 扩展类型--函数
 
-- **函数定义与调用**：函数参数仅有类型，没有名称。函数形参类型应按字母序排序,重复形参类型必须显式添加别名,对于重复类型形参,建议使用数组，形参数量建议不超过五个。函数作为第一类值，可以传递或作为返回值。别名使用方式分别为 `arr:MetaStruct[]`, `maps:Map<Meta,Meta>`, `f:int16-string->string`，一旦使用别名，数组名、map名和函数签名在本作用域中丢失值，只作为签名保留，别名不能作为签名。
+- **函数定义与调用**：函数形参类型应按字母序排序,对于重复类型形参,建议使用数组，形参数量建议不超过五个。函数作为第一类值，可以传递或作为返回值。一般的, `arr: MetaStruct[]`, `maps: map<Meta,Meta>`, 特殊的, `f: int16-string->string`，其中`int16-string->string`为函数签名,限定传入函数签名为此的函数.
 
   ```language
-  func add(int_arr:int[2])int {
+  func add(int_arr: int[2])int {
       return int_arr[0] + int_arr[1]
   }
 
-  func multiply(float[], int)float {
-      return float[] * int
+  func multiply(float_array: float[], a: int)float {
+      return float_array * a
   }
 
   # 函数调用
-  add([3, 5])           # 调用无名函数
-  multiply([1.0, 2.0], 3)  # 调用无名函数
+  add([3, 5])           
+  multiply([1.0, 2.0], 3) 
   ```
   int[2]->int和int[3]->int属于不同的签名
   相同类型的实参传入函数时会自动打包为数组
@@ -83,12 +86,12 @@
 
   ```language
   # 使用签名方式定义超载函数
-  func apply(f:<int->int>, int)int {
-      return f(int)
+  func apply(f: int->int, a: int)int {
+      return f(a)
   }
 
-  func increment(int)int {
-      return int + 1
+  func increment(b: int)int {
+      return b + 1
   }
 
   # 使用签名方式调用超载函数
@@ -96,15 +99,16 @@
   ```
 - **匿名函数**
     当作为实参或者返回值的时候,以及其他不需要函数名的情况下
-- **隐式类型转换**：对于基本类型,可以自动进行隐式类型转换,转换原则为安全第一原则,低位转高位是安全的,高位转低位是不安全的,对于结构体子类隐式转化父类是安全的,父类隐式转化子类是不安全的,对于不安全的隐式转换编译器会警告。如果将子类型传入父类型，参数的所有行为以子类型拥有的优先。如果子类型没有此行为，则调用父类型，如果父类型也没有该行为，则编译器报错;如果将父类型传入子类型,行为以父类型拥有的优先,如果父类型没有对应行为,则调用子类型的对应行为,如果都没有,则编译器报错.
+- **隐式类型转换**：对于基本类型,可以自动进行隐式类型转换,转换原则为安全第一原则,低位转高位是安全的,高位转低位是不安全的,对于结构体子类隐式转化父类是安全的,父类隐式转化子类是不安全的。如果将子类型传入父类型，参数的所有行为以子类型拥有的优先。如果子类型没有此行为，则调用父类型，如果父类型也没有该行为，则编译器报错;如果将父类型传入子类型,行为以父类型拥有的优先,如果父类型没有对应行为,则调用子类型的对应行为,如果都没有,则编译器报错.
 
   ```language
   struct Parent {
-      int
+      age: int
   }
 
   struct Child {
-      int, string
+      age: int, 
+      des: string
   }
 
   func process(Parent): string {
@@ -141,21 +145,21 @@
   ```
 - **匿名结构体**: 使用{}包裹的表达式就是匿名结构体, 函数的多返回值实际就是匿名结构体, 匿名结构体赋值时可以自动解包,但变量数量得一一对应,且遵循变量数最少原则, 匿名结构体也可以用来进行函数的调用,如
     ```language
-    func add(int[2]):
-        return int[0] + int[1]
-    num := {422, 533}.add()
+    func add(a: int[2]):
+        return a[0] + a[1]
+    num := [422, 533].add()
     ```
     特殊的, 没有大括号包围的则是隐式的单字段匿名结构体,对于上面的程序,可以这样`[422, 433].add()
 
-- **自动继承机制**：包含另一个结构体所有字段的结构体将自动继承该结构体。字段调用仍使用 `struct.字段类型` 的形式。
+- **自动继承机制**：包含另一个结构体所有字段的结构体将自动继承该结构体。字段调用仍使用 `struct.字段名` 的形式。
 
   ```language
   struct ColorPoint {
-      float, int, string
+      a: float, b: int, c: string
   }
 
   struct RichVector {
-      float[], int, string
+      a: float, d: float, b: int, c: string
   }
   # 由于 RichVector具有ColorPoint所有字段,所以自动继承ColorPoint, 可以隐式认为是ColorPoint类型,可以直接传入ColorPoint类型
   # 结构体字段调用
